@@ -7,8 +7,7 @@ India Innovates 2026
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from datetime import datetime
-import numpy as np
-import pandas as pd
+import random
 
 from data import (
     HOTSPOTS, DRAINAGE_SYSTEMS, HISTORICAL_YEARLY,
@@ -280,7 +279,7 @@ def historical_summary():
 @app.route("/api/historical/download", methods=["GET"])
 def historical_download():
     """Return full historical dataset as JSON (frontend converts to CSV)."""
-    np.random.seed(99)
+    random.seed(99)
     rows = []
     for year in range(2016, 2027):
         for month in range(1, 13):
@@ -288,9 +287,9 @@ def historical_download():
             rows.append({
                 "year": year,
                 "month": month,
-                "incidents": int(np.random.randint(10, 40) if is_monsoon else np.random.randint(0, 5)),
-                "rainfall_mm": int(np.random.randint(100, 250) if is_monsoon else np.random.randint(10, 50)),
-                "people_affected": int(np.random.randint(5000, 50000) if is_monsoon else np.random.randint(0, 2000)),
+                "incidents": random.randint(10, 40) if is_monsoon else random.randint(0, 5),
+                "rainfall_mm": random.randint(100, 250) if is_monsoon else random.randint(10, 50),
+                "people_affected": random.randint(5000, 50000) if is_monsoon else random.randint(0, 2000),
             })
     return jsonify(rows)
 

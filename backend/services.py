@@ -3,7 +3,7 @@ Business logic services for Jal-Drishti Delhi.
 Flood risk calculation, LSTM-style predictions, readiness scoring.
 """
 
-import numpy as np
+import random
 from datetime import datetime, timedelta
 
 
@@ -46,7 +46,7 @@ def generate_water_level_prediction(rainfall, hours_back=6, hours_forward=6):
     Generate LSTM-style water level prediction data.
     Returns historical levels, predicted levels, and timestamps.
     """
-    np.random.seed(42)
+    random.seed(42)
     now = datetime.now()
 
     # Historical data
@@ -54,7 +54,7 @@ def generate_water_level_prediction(rainfall, hours_back=6, hours_forward=6):
     base_level = 2.1
     historical = []
     for i in range(hours_back + 1):
-        noise = np.random.uniform(-0.05, 0.05)
+        noise = random.uniform(-0.05, 0.05)
         level = base_level - 0.6 + i * 0.1 + noise
         historical.append(round(level, 3))
 
@@ -63,7 +63,7 @@ def generate_water_level_prediction(rainfall, hours_back=6, hours_forward=6):
     predicted = []
     current = historical[-1]
     for i in range(1, hours_forward + 1):
-        increment = (rainfall / 50) * 0.15 + np.random.uniform(-0.08, 0.08)
+        increment = (rainfall / 50) * 0.15 + random.uniform(-0.08, 0.08)
         current = current + increment
         predicted.append(round(current, 3))
 
@@ -85,10 +85,10 @@ def generate_water_level_prediction(rainfall, hours_back=6, hours_forward=6):
 
 def generate_drain_flow_data(base_flow, hours=24):
     """Generate 24-hour flow rate data for a drain."""
-    np.random.seed(int(base_flow))
+    random.seed(int(base_flow))
     data = []
     for h in range(hours):
-        variation = np.random.uniform(-25, 25)
+        variation = random.uniform(-25, 25)
         flow = max(10, base_flow + variation)
         data.append({"hour": h, "flow_rate": round(flow, 1)})
     return data
