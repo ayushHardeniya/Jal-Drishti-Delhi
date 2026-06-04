@@ -289,3 +289,48 @@ PLANNING_RULES = {
     "minimum_action_score": 35.0,
     "top_recommendation_limit": 6,
 }
+
+
+# Scenario presets for flood simulation
+SCENARIO_PRESETS = [
+    {
+        "key": "normal_monsoon",
+        "name": "Normal Monsoon",
+        "description": "Seasonal rain with manageable drainage stress and moderate operational pressure.",
+        "rainfall_mm": 35,
+        "drainage_stress": 0.10,
+        "readiness_penalty": 0.06,
+        "resource_pressure": 0.12,
+        "focus": "Monitoring and light intervention",
+    },
+    {
+        "key": "heavy_rainfall",
+        "name": "Heavy Rainfall",
+        "description": "Sustained rain event with noticeable drainage stress and higher field response demand.",
+        "rainfall_mm": 70,
+        "drainage_stress": 0.22,
+        "readiness_penalty": 0.12,
+        "resource_pressure": 0.26,
+        "focus": "Pump staging and traffic control",
+    },
+    {
+        "key": "cloudburst",
+        "name": "Cloudburst",
+        "description": "Short-duration extreme rainfall with severe operational strain across low-lying zones.",
+        "rainfall_mm": 110,
+        "drainage_stress": 0.38,
+        "readiness_penalty": 0.20,
+        "resource_pressure": 0.45,
+        "focus": "Rapid response and evacuation readiness",
+    },
+    {
+        "key": "extreme_flood_event",
+        "name": "Extreme Flood Event",
+        "description": "Citywide extreme flood condition with maximum drainage stress and emergency posture.",
+        "rainfall_mm": 150,
+        "drainage_stress": 0.55,
+        "readiness_penalty": 0.30,
+        "resource_pressure": 0.65,
+        "focus": "Emergency escalation and mass alerts",
+    },
+]

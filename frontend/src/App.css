@@ -505,6 +505,11 @@
   flex-direction: column;
 }
 
+.scenario-page {
+  display: flex;
+  flex-direction: column;
+}
+
 .planning-actions {
   display: flex;
   align-items: center;
@@ -523,6 +528,10 @@
 }
 
 .planning-toast {
+  margin-bottom: 16px;
+}
+
+.scenario-toast {
   margin-bottom: 16px;
 }
 
@@ -688,6 +697,126 @@
 
 .reasoning-block p {
   margin: 0;
+}
+
+/* ---- Scenario Simulator ---- */
+
+.scenario-controls-card,
+.scenario-chart-wrap,
+.scenario-hotspots-card {
+  margin-bottom: 16px;
+}
+
+.scenario-controls-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.scenario-controls-header h3,
+.scenario-chart-wrap h3,
+.scenario-impact-grid h3,
+.scenario-hotspots-card h3 {
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.scenario-controls-header p {
+  margin: 0;
+  font-size: 12px;
+  color: #718096;
+}
+
+.scenario-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.scenario-preset-card {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  border-radius: 6px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.scenario-preset-card:hover {
+  border-color: #1a3c6e;
+  box-shadow: 0 1px 4px rgba(26, 60, 110, 0.12);
+}
+
+.scenario-preset-card.active {
+  border-color: #1a3c6e;
+  box-shadow: 0 0 0 1px #1a3c6e inset;
+}
+
+.scenario-preset-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a3c6e;
+}
+
+.scenario-preset-rainfall {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.scenario-preset-desc {
+  font-size: 12px;
+  color: #718096;
+}
+
+.scenario-metrics-row {
+  margin-top: 6px;
+}
+
+.scenario-impact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.scenario-impact-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.scenario-impact-list > div {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scenario-impact-list span,
+.scenario-action-zone {
+  font-size: 12px;
+  color: #718096;
+}
+
+.scenario-actions-table td,
+.scenario-actions-table th {
+  vertical-align: top;
+}
+
+@media (max-width: 900px) {
+  .scenario-impact-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ---- Readiness Score ---- */

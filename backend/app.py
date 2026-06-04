@@ -13,12 +13,14 @@ from data import (
     HOTSPOTS, DRAINAGE_SYSTEMS, HISTORICAL_YEARLY,
     HISTORICAL_MONTHLY_AVG, AFFECTED_AREAS, EMERGENCY_CONTACTS,
     WARD_ZONES, RESOURCE_INVENTORY, ALLOCATION_WEIGHTS, PLANNING_RULES,
+    SCENARIO_PRESETS,
 )
 from services import (
     calculate_flood_risk, get_risk_status, generate_risk_trend,
     generate_water_level_prediction, generate_drain_flow_data,
     calculate_readiness_score, calculate_zone_risk_distribution,
     build_resource_allocation_plan, apply_resource_allocation_plan,
+    simulate_flood_scenario,
 )
 
 app = Flask(__name__)
@@ -393,6 +395,39 @@ def apply_planning_allocation():
     result = apply_resource_allocation_plan(plan, state)
     result["plan_id"] = plan["plan_id"]
     result["resource_inventory"] = state["resource_inventory"]
+    return jsonify(result)
+
+
+# ---------------------------------------------------------------------------
+# Scenario Simulation
+# ---------------------------------------------------------------------------
+
+@app.route("/api/scenarios/presets", methods=["GET"])
+def scenario_presets():
+    return jsonify({
+        "default_scenario_key": SCENARIO_PRESETS[0]["key"],
+        "presets": SCENARIO_PRESETS,
+    })
+
+
+@app.route("/api/scenarios/simulate", methods=["POST"])
+def simulate_scenario():
+    payload = request.get_json(force=True)
+    scenario_id = payload.get("scenario_id")
+    rainfall = float(payload.get("rainfall", state["rainfall"]))
+    result = simulate_flood_scenario(
+        scenario_id=scenario_id,
+        rainfall=rainfall,
+        hotspots=HOTSPOTS,
+        drainage_systems=DRAINAGE_SYSTEMS,
+        ward_zones=WARD_ZONES,
+        inventory=state["resource_inventory"],
+        weights=ALLOCATION_WEIGHTS,
+        scenarios=SCENARIO_PRESETS,
+        plan_limit=PLANNING_RULES["top_recommendation_limit"],
+    )
+    if result is None:
+        return jsonify({"error": "Scenario not found"}), 404
     return jsonify(result)
 
 

@@ -4,7 +4,9 @@ Flood risk calculation, LSTM-style predictions, readiness scoring.
 """
 
 import random
+from copy import deepcopy
 from datetime import datetime, timedelta
+from math import ceil
 
 
 def calculate_flood_risk(base_risk, rainfall, elevation=210, drainage_density=0.6):
@@ -505,4 +507,182 @@ def apply_resource_allocation_plan(plan, state):
             "alerts_sent": state["alerts_sent"],
         },
         "actions_log": state["actions_log"][:20],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Scenario Simulation
+# ---------------------------------------------------------------------------
+
+def _scenario_lookup(scenarios):
+    lookup = {}
+    for scenario in scenarios:
+        scenario_key = scenario.get("key") or scenario.get("id")
+        if scenario_key:
+            lookup[scenario_key] = scenario
+    return lookup
+
+
+def _scenario_adjusted_hotspots(hotspots, rainfall, scenario):
+    adjusted = []
+    for hotspot in hotspots:
+        copy = deepcopy(hotspot)
+        copy["base_risk"] = min(0.99, round(hotspot["base_risk"] * (1 + scenario["resource_pressure"] * 0.18), 4))
+        copy["drainage_density"] = max(0.15, round(hotspot["drainage_density"] - scenario["drainage_stress"] * 0.35, 4))
+        adjusted.append(copy)
+    return adjusted
+
+
+def _scenario_adjusted_wards(ward_zones, scenario):
+    adjusted = []
+    for zone in ward_zones:
+        copy = deepcopy(zone)
+        copy["base_drainage_score"] = max(20, round(zone["base_drainage_score"] * (1 - scenario["drainage_stress"] * 0.55), 1))
+        copy["pump_infra"] = max(20, round(zone["pump_infra"] * (1 - scenario["resource_pressure"] * 0.28), 1))
+        copy["terrain_score"] = max(20, round(zone["terrain_score"] * (1 - scenario["drainage_stress"] * 0.18), 1))
+        copy["historical_prep"] = max(20, round(zone["historical_prep"] * (1 - scenario["readiness_penalty"] * 0.45), 1))
+        adjusted.append(copy)
+    return adjusted
+
+
+def _scenario_effective_values(rainfall, scenario):
+    return {
+        "rainfall_mm": scenario["rainfall_mm"],
+        "drainage_stress": scenario["drainage_stress"],
+        "readiness_penalty": scenario["readiness_penalty"],
+        "resource_pressure": scenario["resource_pressure"],
+        "rainfall_delta": round(scenario["rainfall_mm"] - rainfall, 1),
+    }
+
+
+def _plan_metrics(plan):
+    recommendations = plan.get("ranked_recommendations", [])
+    return {
+        "rainfall_mm": plan["rainfall_mm"],
+        "critical_hotspots": plan["summary"]["critical_hotspots"],
+        "population_at_risk": plan["summary"]["high_risk_population"],
+        "readiness_score": round(max(0, 100 - plan["expected_impact"]["readiness_improvement_pct"] * 5), 1),
+        "pumps_required": sum(r["quantity"] for r in recommendations if r["resource_type"] == "pumps"),
+        "field_teams_required": sum(r["quantity"] for r in recommendations if r["resource_type"] == "field_teams"),
+        "traffic_units_required": sum(r["quantity"] for r in recommendations if r["resource_type"] == "traffic_units"),
+        "overall_urgency": plan["summary"]["overall_action_urgency"],
+    }
+
+
+def simulate_flood_scenario(scenario_id, rainfall, hotspots, drainage_systems, ward_zones, inventory, weights, scenarios, plan_limit=6):
+    """Generate a deterministic what-if flood scenario simulation."""
+    lookup = _scenario_lookup(scenarios)
+    scenario = lookup.get(scenario_id)
+    if not scenario:
+        return None
+
+    baseline_plan = build_resource_allocation_plan(
+        rainfall=rainfall,
+        hotspots=hotspots,
+        drainage_systems=drainage_systems,
+        ward_zones=ward_zones,
+        inventory=deepcopy(inventory),
+        weights=weights,
+        plan_limit=plan_limit,
+    )
+
+    scenario_hotspots = _scenario_adjusted_hotspots(hotspots, rainfall, scenario)
+    scenario_wards = _scenario_adjusted_wards(ward_zones, scenario)
+    scenario_plan = build_resource_allocation_plan(
+        rainfall=scenario["rainfall_mm"],
+        hotspots=scenario_hotspots,
+        drainage_systems=drainage_systems,
+        ward_zones=scenario_wards,
+        inventory=deepcopy(inventory),
+        weights=weights,
+        plan_limit=plan_limit,
+    )
+
+    baseline_metrics = _plan_metrics(baseline_plan)
+    simulated_metrics = _plan_metrics(scenario_plan)
+
+    simulated_metrics["readiness_score"] = round(
+        max(0, simulated_metrics["readiness_score"] - scenario["readiness_penalty"] * 18),
+        1,
+    )
+    simulated_metrics["pumps_required"] = max(
+        simulated_metrics["pumps_required"],
+        round(baseline_metrics["pumps_required"] * (1 + scenario["resource_pressure"] * 1.6)),
+        ceil(scenario_plan["summary"]["critical_hotspots"] * max(1.0, scenario["resource_pressure"])),
+    )
+    simulated_metrics["field_teams_required"] = max(
+        simulated_metrics["field_teams_required"],
+        round(baseline_metrics["field_teams_required"] * (1 + scenario["resource_pressure"] * 1.4)),
+        ceil(len(scenario_plan["priority_zones"]) * max(1.0, 1 + scenario["readiness_penalty"] * 10)),
+    )
+
+    baseline_hotspots = []
+    for hotspot in hotspots:
+        risk = calculate_flood_risk(hotspot["base_risk"], rainfall, hotspot["elevation"], hotspot["drainage_density"])
+        if risk >= 0.60:
+            baseline_hotspots.append({
+                "id": hotspot["id"],
+                "name": hotspot["name"],
+                "risk_pct": round(risk * 100, 1),
+                "status": get_risk_status(risk)[0],
+                "severity": get_risk_status(risk)[1],
+                "population": hotspot["population"],
+            })
+
+    scenario_hotspot_rows = []
+    for hotspot in scenario_hotspots:
+        risk = calculate_flood_risk(hotspot["base_risk"], scenario["rainfall_mm"], hotspot["elevation"], hotspot["drainage_density"])
+        if risk >= 0.60:
+            scenario_hotspot_rows.append({
+                "id": hotspot["id"],
+                "name": hotspot["name"],
+                "risk_pct": round(risk * 100, 1),
+                "status": get_risk_status(risk)[0],
+                "severity": get_risk_status(risk)[1],
+                "population": hotspot["population"],
+            })
+
+    impacted_zones = scenario_plan.get("priority_zones", [])[:5]
+    recommended_actions = []
+    for recommendation in scenario_plan.get("ranked_recommendations", [])[:6]:
+        recommended_actions.append({
+            "rank": recommendation["rank"],
+            "target_name": recommendation["target_name"],
+            "zone_name": recommendation["zone_name"],
+            "resource_type": recommendation["resource_type"],
+            "quantity": recommendation["quantity"],
+            "reason": recommendation["reason"],
+            "expected_effect": recommendation["expected_effect"],
+        })
+
+    delta = {
+        "rainfall_mm": round(simulated_metrics["rainfall_mm"] - baseline_metrics["rainfall_mm"], 1),
+        "critical_hotspots": simulated_metrics["critical_hotspots"] - baseline_metrics["critical_hotspots"],
+        "population_at_risk": simulated_metrics["population_at_risk"] - baseline_metrics["population_at_risk"],
+        "readiness_score": round(simulated_metrics["readiness_score"] - baseline_metrics["readiness_score"], 1),
+        "pumps_required": simulated_metrics["pumps_required"] - baseline_metrics["pumps_required"],
+        "field_teams_required": simulated_metrics["field_teams_required"] - baseline_metrics["field_teams_required"],
+    }
+
+    return {
+        "scenario": {
+            "key": scenario["key"],
+            "name": scenario["name"],
+            "description": scenario["description"],
+            **_scenario_effective_values(rainfall, scenario),
+        },
+        "generated_at": datetime.now().isoformat(),
+        "baseline": baseline_metrics,
+        "simulated": simulated_metrics,
+        "delta": delta,
+        "affected_hotspots": scenario_hotspot_rows[:6],
+        "critical_zones": impacted_zones,
+        "recommended_actions": recommended_actions,
+        "expected_impact": {
+            "population_at_risk": simulated_metrics["population_at_risk"],
+            "critical_hotspots": simulated_metrics["critical_hotspots"],
+            "pumps_required": simulated_metrics["pumps_required"],
+            "field_teams_required": simulated_metrics["field_teams_required"],
+            "readiness_score": simulated_metrics["readiness_score"],
+        },
     }

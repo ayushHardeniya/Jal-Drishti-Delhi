@@ -59,6 +59,11 @@ export const getPlanningSummary = (rainfall) =>
 export const applyPlanningAllocation = (payload = {}) =>
   api.post('/api/planning/allocation/apply', payload);
 
+/* ---- Scenario Simulation ---- */
+export const getScenarioPresets = () => api.get('/api/scenarios/presets');
+export const simulateScenario = (payload = {}) =>
+  api.post('/api/scenarios/simulate', payload);
+
 /* ---- Emergency ---- */
 export const getEmergencyStatus = () => api.get('/api/emergency/status');
 export const emergencyDeployPumps = (count = 5) =>
