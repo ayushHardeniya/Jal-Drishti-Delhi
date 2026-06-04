@@ -25,10 +25,10 @@ export default function Planning({ rainfall }) {
     try {
       setBusy(true);
       const { data } = await applyPlanningAllocation({ rainfall });
-      setMessage(data.message || 'Allocation plan applied.');
+      setMessage({ text: data.message || 'Allocation plan applied.', type: 'success' });
       await loadPlan();
     } catch {
-      setMessage('Unable to apply allocation plan. Check backend connection.');
+      setMessage({ text: 'Unable to apply allocation plan. Check backend connection.', type: 'error' });
     } finally {
       setBusy(false);
     }
@@ -61,7 +61,7 @@ export default function Planning({ rainfall }) {
         <AllocationSummaryCard label="Stabilization Time" value={`${impact.estimated_time_to_stabilization_min ?? 0} min`} note="Estimated response window" />
       </div>
 
-      {message && <div className="toast toast-success planning-toast">{message}</div>}
+      {message && <div className={`toast toast-${message.type} planning-toast`}>{message.text}</div>}
 
       <div className="planning-actions">
         <button className="btn btn-primary" onClick={handleApply} disabled={busy}>

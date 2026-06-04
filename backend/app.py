@@ -30,6 +30,7 @@ state = {
     "pumps_deployed": 0,
     "alerts_sent": 0,
     "actions_log": [],
+    "resource_inventory": RESOURCE_INVENTORY.copy(),
 }
 
 
@@ -43,6 +44,17 @@ def _get_rainfall():
     if r is not None:
         return float(r)
     return state["rainfall"]
+
+
+def _get_request_rainfall(default=None):
+    """Get rainfall from request JSON first, then query string, then state."""
+    payload = request.get_json(silent=True) or {}
+    if "rainfall" in payload and payload["rainfall"] is not None:
+        return float(payload["rainfall"])
+    rainfall = request.args.get("rainfall", None)
+    if rainfall is not None:
+        return float(rainfall)
+    return state["rainfall"] if default is None else default
 
 
 def _log_action(action_type, description):
@@ -338,7 +350,7 @@ def planning_allocation():
         hotspots=HOTSPOTS,
         drainage_systems=DRAINAGE_SYSTEMS,
         ward_zones=WARD_ZONES,
-        inventory=RESOURCE_INVENTORY,
+        inventory=state["resource_inventory"],
         weights=ALLOCATION_WEIGHTS,
         plan_limit=PLANNING_RULES["top_recommendation_limit"],
     )
@@ -353,7 +365,7 @@ def planning_summary():
         hotspots=HOTSPOTS,
         drainage_systems=DRAINAGE_SYSTEMS,
         ward_zones=WARD_ZONES,
-        inventory=RESOURCE_INVENTORY,
+        inventory=state["resource_inventory"],
         weights=ALLOCATION_WEIGHTS,
         plan_limit=PLANNING_RULES["top_recommendation_limit"],
     )
@@ -368,18 +380,19 @@ def planning_summary():
 
 @app.route("/api/planning/allocation/apply", methods=["POST"])
 def apply_planning_allocation():
-    rainfall = _get_rainfall()
+    rainfall = _get_request_rainfall()
     plan = build_resource_allocation_plan(
         rainfall=rainfall,
         hotspots=HOTSPOTS,
         drainage_systems=DRAINAGE_SYSTEMS,
         ward_zones=WARD_ZONES,
-        inventory=RESOURCE_INVENTORY,
+        inventory=state["resource_inventory"],
         weights=ALLOCATION_WEIGHTS,
         plan_limit=PLANNING_RULES["top_recommendation_limit"],
     )
     result = apply_resource_allocation_plan(plan, state)
     result["plan_id"] = plan["plan_id"]
+    result["resource_inventory"] = state["resource_inventory"]
     return jsonify(result)
 
 

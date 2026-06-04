@@ -466,11 +466,13 @@ def apply_resource_allocation_plan(plan, state):
     """Apply allocation actions to the in-memory application state."""
     applied = []
     for recommendation in plan.get("ranked_recommendations", []):
+        resource_type = recommendation["resource_type"]
+        quantity = recommendation["quantity"]
         entry = {
             "timestamp": datetime.now().isoformat(),
-            "type": f"ALLOCATION_{recommendation['resource_type'].upper()}",
+            "type": f"ALLOCATION_{resource_type.upper()}",
             "description": (
-                f"Allocated {recommendation['quantity']} {recommendation['resource_type']} to "
+                f"Allocated {quantity} {resource_type} to "
                 f"{recommendation['target_name']}"
             ),
         }
@@ -478,15 +480,19 @@ def apply_resource_allocation_plan(plan, state):
         if len(state["actions_log"]) > 100:
             state["actions_log"] = state["actions_log"][:100]
 
-        if recommendation["resource_type"] == "pumps":
-            state["pumps_deployed"] += recommendation["quantity"]
-        elif recommendation["resource_type"] == "sms_batches":
-            state["alerts_sent"] += recommendation["quantity"]
+        inventory = state.get("resource_inventory", {})
+        if resource_type in inventory:
+            inventory[resource_type] = max(0, inventory[resource_type] - quantity)
+
+        if resource_type == "pumps":
+            state["pumps_deployed"] += quantity
+        elif resource_type == "sms_batches":
+            state["alerts_sent"] += quantity
 
         applied.append({
             "target_name": recommendation["target_name"],
-            "resource_type": recommendation["resource_type"],
-            "quantity": recommendation["quantity"],
+            "resource_type": resource_type,
+            "quantity": quantity,
             "log": entry,
         })
 
