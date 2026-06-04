@@ -263,3 +263,29 @@ WARD_ZONES = [
     {"zone": "Northwest Delhi", "wards": 30, "base_drainage_score": 48, "pump_infra": 45, "terrain_score": 52, "historical_prep": 50},
     {"zone": "Southwest Delhi", "wards": 28, "base_drainage_score": 55, "pump_infra": 50, "terrain_score": 48, "historical_prep": 52},
 ]
+
+
+# Planning / allocation configuration
+RESOURCE_INVENTORY = {
+    "pumps": 18,
+    "field_teams": 7,
+    "traffic_units": 4,
+    "sms_batches": 3,
+    "medical_units": 2,
+    "evacuation_vehicles": 6,
+}
+
+ALLOCATION_WEIGHTS = {
+    "flood_risk": 0.40,
+    "population_exposure": 0.25,
+    "readiness_gap": 0.20,
+    "drainage_penalty": 0.10,
+    "operational_urgency": 0.05,
+}
+
+PLANNING_RULES = {
+    "critical_risk_threshold": 0.75,
+    "high_risk_threshold": 0.50,
+    "minimum_action_score": 35.0,
+    "top_recommendation_limit": 6,
+}

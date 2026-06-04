@@ -51,6 +51,14 @@ export const getHistoricalDownload = () => api.get('/api/historical/download');
 export const getReadiness = (rainfall) =>
   api.get('/api/readiness', { params: { rainfall } });
 
+/* ---- Planning / Resource Allocation ---- */
+export const getPlanningAllocation = (rainfall) =>
+  api.get('/api/planning/allocation', { params: { rainfall } });
+export const getPlanningSummary = (rainfall) =>
+  api.get('/api/planning/summary', { params: { rainfall } });
+export const applyPlanningAllocation = (payload = {}) =>
+  api.post('/api/planning/allocation/apply', payload);
+
 /* ---- Emergency ---- */
 export const getEmergencyStatus = () => api.get('/api/emergency/status');
 export const emergencyDeployPumps = (count = 5) =>

@@ -12,12 +12,13 @@ import random
 from data import (
     HOTSPOTS, DRAINAGE_SYSTEMS, HISTORICAL_YEARLY,
     HISTORICAL_MONTHLY_AVG, AFFECTED_AREAS, EMERGENCY_CONTACTS,
-    WARD_ZONES,
+    WARD_ZONES, RESOURCE_INVENTORY, ALLOCATION_WEIGHTS, PLANNING_RULES,
 )
 from services import (
     calculate_flood_risk, get_risk_status, generate_risk_trend,
     generate_water_level_prediction, generate_drain_flow_data,
     calculate_readiness_score, calculate_zone_risk_distribution,
+    build_resource_allocation_plan, apply_resource_allocation_plan,
 )
 
 app = Flask(__name__)
@@ -323,6 +324,63 @@ def readiness_scores():
         "total_wards": sum(z["wards"] for z in WARD_ZONES),
         "zones": result,
     })
+
+
+# ---------------------------------------------------------------------------
+# Planning / Resource Allocation
+# ---------------------------------------------------------------------------
+
+@app.route("/api/planning/allocation", methods=["GET"])
+def planning_allocation():
+    rainfall = _get_rainfall()
+    plan = build_resource_allocation_plan(
+        rainfall=rainfall,
+        hotspots=HOTSPOTS,
+        drainage_systems=DRAINAGE_SYSTEMS,
+        ward_zones=WARD_ZONES,
+        inventory=RESOURCE_INVENTORY,
+        weights=ALLOCATION_WEIGHTS,
+        plan_limit=PLANNING_RULES["top_recommendation_limit"],
+    )
+    return jsonify(plan)
+
+
+@app.route("/api/planning/summary", methods=["GET"])
+def planning_summary():
+    rainfall = _get_rainfall()
+    plan = build_resource_allocation_plan(
+        rainfall=rainfall,
+        hotspots=HOTSPOTS,
+        drainage_systems=DRAINAGE_SYSTEMS,
+        ward_zones=WARD_ZONES,
+        inventory=RESOURCE_INVENTORY,
+        weights=ALLOCATION_WEIGHTS,
+        plan_limit=PLANNING_RULES["top_recommendation_limit"],
+    )
+    return jsonify({
+        "plan_id": plan["plan_id"],
+        "generated_at": plan["generated_at"],
+        "rainfall_mm": plan["rainfall_mm"],
+        "summary": plan["summary"],
+        "expected_impact": plan["expected_impact"],
+    })
+
+
+@app.route("/api/planning/allocation/apply", methods=["POST"])
+def apply_planning_allocation():
+    rainfall = _get_rainfall()
+    plan = build_resource_allocation_plan(
+        rainfall=rainfall,
+        hotspots=HOTSPOTS,
+        drainage_systems=DRAINAGE_SYSTEMS,
+        ward_zones=WARD_ZONES,
+        inventory=RESOURCE_INVENTORY,
+        weights=ALLOCATION_WEIGHTS,
+        plan_limit=PLANNING_RULES["top_recommendation_limit"],
+    )
+    result = apply_resource_allocation_plan(plan, state)
+    result["plan_id"] = plan["plan_id"]
+    return jsonify(result)
 
 
 # ---------------------------------------------------------------------------

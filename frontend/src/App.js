@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
+import { Routes, Route, NavLink } from 'react-router-dom';
 import { setRainfall as apiSetRainfall, getAppState } from './api';
 
 import Dashboard from './pages/Dashboard';
 import Hotspots from './pages/Hotspots';
 import Drainage from './pages/Drainage';
+import Planning from './pages/Planning';
 import Analytics from './pages/Analytics';
 import Historical from './pages/Historical';
 import Readiness from './pages/Readiness';
@@ -16,6 +17,7 @@ const NAV_ITEMS = [
   { path: '/', label: 'Dashboard' },
   { path: '/hotspots', label: 'Flood Hotspots' },
   { path: '/drainage', label: 'Drainage Network' },
+  { path: '/planning', label: 'Planning' },
   { path: '/analytics', label: 'Analytics' },
   { path: '/historical', label: 'Historical Data' },
   { path: '/readiness', label: 'Readiness Score' },
@@ -26,7 +28,6 @@ export default function App() {
   const [rainfall, setRainfall] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [appState, setAppState] = useState({ pumps_deployed: 0, alerts_sent: 0 });
-  const location = useLocation();
 
   const fetchState = useCallback(async () => {
     try {
@@ -118,6 +119,7 @@ export default function App() {
             <Route path="/" element={<Dashboard rainfall={rainfall} />} />
             <Route path="/hotspots" element={<Hotspots rainfall={rainfall} />} />
             <Route path="/drainage" element={<Drainage rainfall={rainfall} />} />
+            <Route path="/planning" element={<Planning rainfall={rainfall} />} />
             <Route path="/analytics" element={<Analytics rainfall={rainfall} />} />
             <Route path="/historical" element={<Historical />} />
             <Route path="/readiness" element={<Readiness rainfall={rainfall} />} />

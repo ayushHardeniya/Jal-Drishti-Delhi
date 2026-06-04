@@ -497,6 +497,198 @@
   margin: 0;
 }
 
+/* ---- Planning / Allocation ---- */
+
+.planning-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.planning-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.planning-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #4a5568;
+}
+
+.planning-toast {
+  margin-bottom: 16px;
+}
+
+.allocation-summary-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.allocation-summary-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #718096;
+  font-weight: 600;
+}
+
+.allocation-summary-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a3c6e;
+}
+
+.allocation-summary-note {
+  font-size: 12px;
+  color: #718096;
+}
+
+.allocation-summary-critical .allocation-summary-value {
+  color: #c53030;
+}
+
+.allocation-summary-warning .allocation-summary-value {
+  color: #b7791f;
+}
+
+.allocation-summary-success .allocation-summary-value {
+  color: #2f855a;
+}
+
+.inventory-grid,
+.impact-grid,
+.priority-zone-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.inventory-card,
+.impact-grid > div,
+.priority-zone-grid > div {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inventory-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #718096;
+  font-weight: 600;
+}
+
+.priority-zone-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.priority-zone-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.priority-zone-header h4 {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.priority-zone-header p,
+.planning-method,
+.reasoning-block p,
+.allocation-target-cell span,
+.allocation-confidence,
+.allocation-impact-list span,
+.allocation-reasoning li {
+  font-size: 12px;
+  color: #718096;
+}
+
+.priority-zone-header p {
+  margin: 0;
+}
+
+.allocation-table-wrap {
+  overflow-x: auto;
+}
+
+.allocation-table td,
+.allocation-table th {
+  vertical-align: top;
+}
+
+.allocation-target-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.allocation-resource-badge {
+  white-space: nowrap;
+}
+
+.allocation-reasoning {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.allocation-reasoning p {
+  margin: 0;
+  color: #2d3748;
+}
+
+.allocation-reasoning ul {
+  margin-left: 16px;
+}
+
+.allocation-impact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.empty-state {
+  background: #fff;
+  border: 1px dashed #cbd5e0;
+  border-radius: 6px;
+  padding: 18px;
+  font-size: 13px;
+  color: #718096;
+}
+
+.reasoning-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+.reasoning-block p {
+  margin: 0;
+}
+
 /* ---- Readiness Score ---- */
 
 .score-circle {
