@@ -13,7 +13,8 @@
 
 <p align="center">
   <a href="https://jal-drishti-delhi-mu.vercel.app/">Live Demo</a> •
-  <a href="ARCHITECTURE.md">Architecture Documentation</a>
+  <a href="ARCHITECTURE.md">Architecture Documentation</a> •
+  <a href="https://youtu.be/bmCsSPgtJOo">Project Walkthrough</a>
 </p>
 
 ---
@@ -26,9 +27,14 @@
 
 ## Background
 
-Originally developed as a hackathon submission for the Urban Flooding & Hydrology Engine challenge during India Innovates 2026. The project was later expanded with additional planning, simulation, and reporting capabilities.
+Originally developed as a hackathon submission for the Urban Flooding & Hydrology Engine challenge during India Innovates 2026.
 
 [View Original Problem Statement and Source](https://unstop.com/conferences/india-innovates-2026-municipal-corporation-of-delhi-1625920)
+
+As part of the GitHub **Finish-Up-A-Thon**, the project was revisited and expanded with additional planning, simulation, and reporting capabilities. 
+Screenshots documenting the project before and after these updates are available in the [`screenshots/`](screenshots) directory.
+
+The implementation work completed during the challenge can be viewed in the [Finish-Up-A-Thon pull request](https://github.com/ayushHardeniya/Jal-Drishti-Delhi/pull/1).
 
 ---
 
