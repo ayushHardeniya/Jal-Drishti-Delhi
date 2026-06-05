@@ -7,6 +7,7 @@ import Hotspots from './pages/Hotspots';
 import Drainage from './pages/Drainage';
 import Planning from './pages/Planning';
 import ScenarioSimulator from './pages/ScenarioSimulator';
+import ReportsCenter from './pages/ReportsCenter';
 import Analytics from './pages/Analytics';
 import Historical from './pages/Historical';
 import Readiness from './pages/Readiness';
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { path: '/drainage', label: 'Drainage Network' },
   { path: '/planning', label: 'Planning' },
   { path: '/scenarios', label: 'Scenario Simulator' },
+  { path: '/reports', label: 'Reports & Exports' },
   { path: '/analytics', label: 'Analytics' },
   { path: '/historical', label: 'Historical Data' },
   { path: '/readiness', label: 'Readiness Score' },
@@ -123,6 +125,7 @@ export default function App() {
             <Route path="/drainage" element={<Drainage rainfall={rainfall} />} />
             <Route path="/planning" element={<Planning rainfall={rainfall} />} />
             <Route path="/scenarios" element={<ScenarioSimulator rainfall={rainfall} />} />
+            <Route path="/reports" element={<ReportsCenter rainfall={rainfall} />} />
             <Route path="/analytics" element={<Analytics rainfall={rainfall} />} />
             <Route path="/historical" element={<Historical />} />
             <Route path="/readiness" element={<Readiness rainfall={rainfall} />} />

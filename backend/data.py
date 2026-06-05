@@ -334,3 +334,59 @@ SCENARIO_PRESETS = [
         "focus": "Emergency escalation and mass alerts",
     },
 ]
+
+
+REPORT_DOWNLOADS = [
+    {
+        "key": "situation_report",
+        "name": "Flood Situation Report",
+        "format": "PDF",
+        "description": "Current rainfall, hotspot summary, readiness summary, and emergency status.",
+        "endpoint": "/api/reports/situation-report.pdf",
+        "filename": "Flood_Situation_Report.pdf",
+    },
+    {
+        "key": "allocation_report",
+        "name": "Resource Allocation Report",
+        "format": "PDF",
+        "description": "Resource inventory, priority zones, ranked recommendations, and expected impact.",
+        "endpoint": "/api/reports/resource-allocation-report.pdf",
+        "filename": "Resource_Allocation_Report.pdf",
+    },
+    {
+        "key": "scenario_report",
+        "name": "Scenario Analysis Report",
+        "format": "PDF",
+        "description": "Selected scenario, baseline metrics, simulated metrics, and recommended actions.",
+        "endpoint": "/api/reports/scenario-analysis-report.pdf",
+        "filename": "Scenario_Analysis_Report.pdf",
+    },
+]
+
+
+DATA_EXPORTS = [
+    {
+        "key": "historical_data",
+        "name": "Historical Data Export",
+        "format": "CSV",
+        "description": "Year and month-wise incident, rainfall, and impact dataset for archival analysis.",
+        "endpoint": "/api/exports/historical-data.csv",
+        "filename": "Historical_Data_Export.csv",
+    },
+    {
+        "key": "hotspot_data",
+        "name": "Hotspot Data Export",
+        "format": "CSV",
+        "description": "Current hotspot risk, status, population exposure, and operational severity.",
+        "endpoint": "/api/exports/hotspot-data.csv",
+        "filename": "Hotspot_Data_Export.csv",
+    },
+    {
+        "key": "readiness_scores",
+        "name": "Readiness Scores Export",
+        "format": "CSV",
+        "description": "Current ward readiness scores and grade breakdown across all zones.",
+        "endpoint": "/api/exports/readiness-scores.csv",
+        "filename": "Readiness_Scores_Export.csv",
+    },
+]

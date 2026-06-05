@@ -51,6 +51,25 @@ export const getHistoricalDownload = () => api.get('/api/historical/download');
 export const getReadiness = (rainfall) =>
   api.get('/api/readiness', { params: { rainfall } });
 
+/* ---- Reports & Exports ---- */
+export const getReportsSummary = (rainfall) =>
+  api.get('/api/reports/summary', { params: { rainfall } });
+export const downloadFloodSituationReport = (rainfall) =>
+  api.get('/api/reports/situation-report.pdf', { params: { rainfall }, responseType: 'blob' });
+export const downloadResourceAllocationReport = (rainfall) =>
+  api.get('/api/reports/resource-allocation-report.pdf', { params: { rainfall }, responseType: 'blob' });
+export const downloadScenarioAnalysisReport = (scenarioId, rainfall) =>
+  api.get('/api/reports/scenario-analysis-report.pdf', {
+    params: { scenario_id: scenarioId, rainfall },
+    responseType: 'blob',
+  });
+export const downloadHistoricalDataCsv = () =>
+  api.get('/api/exports/historical-data.csv', { responseType: 'blob' });
+export const downloadHotspotDataCsv = (rainfall) =>
+  api.get('/api/exports/hotspot-data.csv', { params: { rainfall }, responseType: 'blob' });
+export const downloadReadinessScoresCsv = (rainfall) =>
+  api.get('/api/exports/readiness-scores.csv', { params: { rainfall }, responseType: 'blob' });
+
 /* ---- Planning / Resource Allocation ---- */
 export const getPlanningAllocation = (rainfall) =>
   api.get('/api/planning/allocation', { params: { rainfall } });
