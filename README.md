@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend\public\assets\logo.png" alt="Jal-Drishti Delhi Logo" width="140">
+  <img src="frontend/public/assets/logo.png" alt="Jal-Drishti Delhi Logo" width="140">
 </p>
 
 <h1 align="center">
@@ -34,7 +34,7 @@ Originally developed as a hackathon submission for the Urban Flooding & Hydrolog
 
 ## About the Project
 
-![Dashboard - Jal-Drishti Delhi](screenshots\dashboard-final.png)
+![Dashboard - Jal-Drishti Delhi](screenshots/dashboard-final.png)
 
 Jal-Drishti Delhi is a full-stack web application built to explore how municipal authorities can monitor, analyze, and respond to urban flooding across Delhi NCR.
 
