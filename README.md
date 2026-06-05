@@ -1,9 +1,20 @@
-# Jal-Drishti Delhi
+<p align="center">
+  <img src="frontend\public\assets\logo.png" alt="Jal-Drishti Delhi Logo" width="140">
+</p>
 
-**Urban Flooding & Hydrology Command Center**
-Municipal Corporation of Delhi
+<h1 align="center">
+  Jal-Drishti Delhi
+</h1>
 
-[Live Demo](https://jal-drishti-delhi-mu.vercel.app/) • [Architecture Documentation](ARCHITECTURE.md)
+<p align="center">
+  <strong>Urban Flooding & Hydrology Command Center</strong><br>
+  Municipal Corporation of Delhi
+</p>
+
+<p align="center">
+  <a href="https://jal-drishti-delhi-mu.vercel.app/">Live Demo</a> •
+  <a href="ARCHITECTURE.md">Architecture Documentation</a>
+</p>
 
 ---
 
@@ -207,8 +218,10 @@ The current version uses static seed datasets and in-memory state. For a product
 The target users are municipal operators and emergency response teams. The focus is on clarity, information density, and usability rather than visual effects.
 
 ---
+---
 
-Built by [Ayush Hardeniya](https://github.com/ayushHardeniya)
+Built by **Ayush Hardeniya**
 
-GitHub: https://github.com/ayushHardeniya
-Contact: [ayushhardeniya@hotmail.com](mailto:ayushhardeniya@hotmail.com?subject=Jal-Drishti%20Delhi%20-%20Project%20Inquiry)
+[E-Mail](mailto:ayushhardeniya@hotmail.com?subject=Jal-Drishti%20Delhi%20-%20Project%20Inquiry) •
+[GitHub](https://github.com/ayushHardeniya) •
+[X](https://x.com/ayushHardeniya)
