@@ -1,128 +1,349 @@
 # Jal-Drishti Delhi - Full Stack Architecture
 
+## System Overview
+
+Jal-Drishti Delhi is a full-stack urban flood monitoring and decision-support platform built for municipal flood management operations across Delhi NCR.
+
+The system combines flood-risk monitoring, drainage analysis, predictive forecasting, readiness assessment, emergency response workflows, resource allocation planning, scenario simulation, and operational reporting into a single command-center application.
+
+---
+
 ## Project Structure
 
-```
+```text
 Jal-Drishti-Delhi/
 |
-|-- backend/                    Flask REST API
-|   |-- app.py                  Main Flask application, all API routes
-|   |-- data.py                 Static data: hotspots, drains, wards, historical records
-|   |-- services.py             Business logic: risk calculation, predictions, readiness scoring
-|   |-- requirements.txt        Python dependencies
+|-- backend/                           Flask REST API
+|   |
+|   |-- app.py                         Main Flask application and API routes
+|   |-- data.py                        Seed datasets, resource inventory, scenario presets
+|   |-- services.py                    Risk models, forecasting, readiness scoring,
+|   |                                 planning, simulation and reporting logic
+|   |-- requirements.txt               Python dependencies
 |
-|-- frontend/                   React Application
+|-- frontend/                          React Single Page Application
+|   |
 |   |-- public/
-|   |   |-- index.html
+|   |   |-- index.html                 Application entry HTML
+|   |
 |   |-- src/
-|   |   |-- api.js              Axios API client, all endpoint bindings
-|   |   |-- App.js              Root component, routing, sidebar, rainfall control
-|   |   |-- App.css             Global styles: government-functional theme
-|   |   |-- index.js            React entry point
-|   |   |-- index.css           CSS reset
-|   |   |-- components/
-|   |   |   |-- MetricCard.jsx  Reusable metric display card
-|   |   |   |-- StatusBadge.jsx Severity/status badge component
-|   |   |   |-- MapView.jsx     Leaflet GIS map with hotspot markers
-|   |   |-- pages/
-|   |   |   |-- Dashboard.jsx   Main dashboard: metrics, map, alerts, prediction chart
-|   |   |   |-- Hotspots.jsx    10 flood micro-zones with detail cards and trend charts
-|   |   |   |-- Drainage.jsx    6 drain systems with flow charts and maintenance actions
-|   |   |   |-- Analytics.jsx   LSTM prediction, risk distribution, rainfall correlation
-|   |   |   |-- Historical.jsx  10-year data: yearly trends, seasonal distribution, CSV export
-|   |   |   |-- Readiness.jsx   Pre-Monsoon Readiness Score (ward-level, radar chart)
-|   |   |   |-- Emergency.jsx   One-click emergency actions, situation report, actions log
-|   |-- package.json
+|   |   |
+|   |   |-- api.js                     Centralized Axios API client
+|   |   |-- App.js                     Routing, sidebar navigation and rainfall controls
+|   |   |-- App.css                    Global styling and layout
+|   |   |-- index.js                   React entry point
+|   |   |-- index.css                  Base styles and resets
+|   |   |
+|   |   |-- components/               Reusable UI components
+|   |   |   |
+|   |   |   |-- MetricCard.jsx         Dashboard metric cards
+|   |   |   |-- StatusBadge.jsx        Risk and severity indicators
+|   |   |   |-- MapView.jsx            GIS visualization using Leaflet
+|   |   |   |
+|   |   |   |-- AllocationSummaryCard.jsx
+|   |   |   |                           Planning summary metrics
+|   |   |   |
+|   |   |   |-- AllocationRecommendationTable.jsx
+|   |   |   |                           Resource allocation recommendations
+|   |   |   |
+|   |   |   |-- ScenarioControls.jsx
+|   |   |   |                           Scenario configuration controls
+|   |   |   |
+|   |   |   |-- ScenarioComparisonChart.jsx
+|   |   |                               Baseline vs simulated comparisons
+|   |   |
+|   |   |-- pages/                     Application modules
+|   |   |   |
+|   |   |   |-- Dashboard.jsx          Command-center overview
+|   |   |   |-- Hotspots.jsx           Flood hotspot monitoring
+|   |   |   |-- Drainage.jsx           Drainage network analysis
+|   |   |   |-- Analytics.jsx          Forecasting and risk analytics
+|   |   |   |-- Historical.jsx         Historical flood analysis
+|   |   |   |-- Readiness.jsx          Pre-Monsoon Readiness Scores
+|   |   |   |-- Planning.jsx           Resource Allocation Engine
+|   |   |   |-- ScenarioSimulator.jsx  What-if flood simulation workspace
+|   |   |   |-- ReportsCenter.jsx      Reports and exports hub
+|   |   |   |-- Emergency.jsx          Emergency response operations
+|   |
+|   |-- package.json                   Frontend dependencies
+|   |-- vercel.json                    Vercel deployment configuration
 |
-|-- start_fullstack.bat          One-click launcher for both servers
-|-- ARCHITECTURE.md              This file
+|-- screenshots/                       README and submission screenshots
+|
+|-- ARCHITECTURE.md                    Detailed technical documentation
+|-- README.md                          Project overview and setup guide
+|-- render.yaml                        Backend deployment configuration
+|-- start_fullstack.bat                One-click local launcher
 ```
+
+---
+
+## Core Application Modules
+
+### Dashboard
+
+Central operational overview containing key metrics, alerts, GIS visualization, and forecasting summaries.
+
+### Flood Hotspots
+
+Monitors flood-prone locations and calculates dynamic risk levels using rainfall, elevation, and drainage characteristics.
+
+### Drainage Network
+
+Tracks major drainage systems, flow behavior, maintenance status, and operational bottlenecks.
+
+### Analytics
+
+Provides forecasting, rainfall correlation analysis, risk distribution, and predictive insights.
+
+### Historical Data
+
+Offers long-term flood trends, incident analysis, and downloadable datasets.
+
+### Readiness Score
+
+Calculates ward-level Pre-Monsoon Readiness Scores using infrastructure, terrain, drainage, and preparedness indicators.
+
+### Planning
+
+Resource Allocation Engine that prioritizes hotspots and recommends deployment of pumps, teams, traffic units, alerts, and emergency resources.
+
+### Scenario Simulator
+
+Allows operators to run what-if flood scenarios by adjusting rainfall intensity, resource availability, response delays, and drainage constraints.
+
+### Emergency Actions
+
+Provides operational workflows such as pump deployment, resident alerts, evacuation actions, and situation management.
+
+### Reports & Exports
+
+Generates operational reports and provides downloadable exports for planning, scenario analysis, and flood management activities.
+
+---
+
+## Application Flow
+
+1. User adjusts rainfall conditions.
+2. Frontend requests updated data from backend APIs.
+3. Backend recalculates:
+
+   * Flood Risk
+   * Water Level Forecasts
+   * Readiness Scores
+   * Allocation Recommendations
+   * Scenario Outcomes
+4. Updated results are rendered across maps, charts, tables, and operational views.
+5. Emergency actions and planning activities are logged in the system state.
+
+---
+
+## Resource Allocation Engine
+
+The Planning module evaluates:
+
+* Flood Risk
+* Population Exposure
+* Readiness Gap
+* Drainage Constraints
+* Operational Urgency
+
+The engine produces:
+
+* Ranked priority zones
+* Resource deployment recommendations
+* Estimated operational impact
+* Resource utilization summaries
+* Decision-support explanations
+
+This transforms the platform from a monitoring dashboard into a planning and response-support system.
+
+---
+
+## Scenario Simulator
+
+The simulator enables:
+
+* Rainfall stress testing
+* Resource shortage simulation
+* Response delay analysis
+* Drain blockage modelling
+* Comparative scenario evaluation
+
+Outputs include:
+
+* Baseline vs simulated conditions
+* Risk changes
+* Readiness impact
+* Recommended interventions
+
+---
+
+## Reporting System
+
+The reporting layer consolidates operational data into structured outputs including:
+
+* Flood Situation Reports
+* Resource Allocation Reports
+* Scenario Analysis Reports
+* Historical Data Exports
+
+Reports can be downloaded and shared for operational planning and review.
+
+---
 
 ## Running the Application
 
 ### Prerequisites
-- Python 3.8+
-- Node.js 18+
-- npm
 
-### Quick Start
-Double-click `start_fullstack.bat` or run manually:
+* Python 3.8+
+* Node.js 18+
+* npm
 
-**Terminal 1 - Backend:**
+### Backend
+
 ```bash
 cd backend
 pip install -r requirements.txt
 python app.py
 ```
 
-**Terminal 2 - Frontend:**
+### Frontend
+
 ```bash
 cd frontend
 npm install
 npm start
 ```
 
-- Backend API: http://localhost:5000
-- Frontend UI: http://localhost:3000
+### Quick Start
 
-### API Endpoints
+```text
+start_fullstack.bat
+```
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /api/state | App state (rainfall, pumps, alerts) |
-| GET/PUT | /api/settings/rainfall | Get/set rainfall simulation value |
-| GET | /api/dashboard/summary | Dashboard metrics |
-| GET | /api/dashboard/alerts | Recent alerts |
-| GET | /api/hotspots | All hotspots with computed risk |
-| POST | /api/hotspots/:id/deploy-pumps | Deploy pumps to hotspot |
-| POST | /api/hotspots/:id/traffic-diversion | Activate traffic diversion |
-| POST | /api/hotspots/:id/alert-residents | Send SMS alert to residents |
-| GET | /api/drainage | All drains with 24h flow data |
-| POST | /api/drainage/:id/schedule-maintenance | Schedule desilting |
-| GET | /api/analytics/prediction | LSTM water level prediction |
-| GET | /api/analytics/risk-distribution | Zone-wise risk |
-| GET | /api/analytics/rainfall-correlation | Historical correlation data |
-| GET | /api/analytics/metrics | Model accuracy and confidence |
-| GET | /api/historical/yearly | Year-wise incident data |
-| GET | /api/historical/seasonal | Monthly averages |
-| GET | /api/historical/affected-areas | Most affected areas |
-| GET | /api/historical/summary | Summary statistics |
-| GET | /api/historical/download | Full dataset for CSV export |
-| GET | /api/readiness | Pre-Monsoon Readiness Scores |
-| GET | /api/emergency/status | Emergency resource status |
-| POST | /api/emergency/deploy-pumps | Emergency pump deployment |
-| POST | /api/emergency/traffic-diversion | Traffic protocol activation |
-| POST | /api/emergency/mass-sms | Mass SMS alert |
-| POST | /api/emergency/ndrf-request | NDRF deployment request |
-| POST | /api/emergency/evacuate | Zone evacuation order |
-| POST | /api/emergency/medical-teams | Medical team dispatch |
-| POST | /api/emergency/alert-all | Alert all services |
-| GET | /api/emergency/situation-report | Generate situation report |
-| GET | /api/emergency/contacts | Emergency contact directory |
-| GET | /api/emergency/actions-log | Recent actions log |
+Backend API:
 
-### Pre-Monsoon Readiness Score
+```text
+http://localhost:5000
+```
 
-The readiness score (0-100) is computed per ward zone using four equally-weighted components (0-25 each):
+Frontend:
 
-1. **Drainage Readiness** - Drain network capacity and clearance status
-2. **Pump Infrastructure** - Availability and distribution of pumping stations
-3. **Terrain Mitigation** - Elevation profile and surface imperviousness management
-4. **Historical Preparedness** - Past performance in monsoon response
+```text
+http://localhost:3000
+```
 
-Grades: A (80-100), B (65-79), C (50-64), D (35-49), F (0-34)
+---
 
-Rainfall simulation dynamically degrades the score to show real-time stress impact.
+## API Reference
 
-### Technology Stack
+### Core System
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| Backend | Flask 3.x | REST API server |
-| Backend | NumPy, Pandas | Data processing and simulation |
-| Frontend | React 18 | UI framework |
-| Frontend | React Router 6 | Client-side routing |
-| Frontend | Recharts | Charts (line, bar, area, radar) |
-| Frontend | React-Leaflet | GIS map with OpenStreetMap tiles |
-| Frontend | Axios | HTTP client for API calls |
-| Styling | Custom CSS | Government-functional theme, no CSS framework |
+| Method  | Endpoint               |
+| ------- | ---------------------- |
+| GET     | /api/state             |
+| GET/PUT | /api/settings/rainfall |
+
+### Dashboard
+
+| Method | Endpoint               |
+| ------ | ---------------------- |
+| GET    | /api/dashboard/summary |
+| GET    | /api/dashboard/alerts  |
+
+### Hotspots
+
+| Method | Endpoint                            |
+| ------ | ----------------------------------- |
+| GET    | /api/hotspots                       |
+| POST   | /api/hotspots/:id/deploy-pumps      |
+| POST   | /api/hotspots/:id/traffic-diversion |
+| POST   | /api/hotspots/:id/alert-residents   |
+
+### Drainage
+
+| Method | Endpoint                               |
+| ------ | -------------------------------------- |
+| GET    | /api/drainage                          |
+| POST   | /api/drainage/:id/schedule-maintenance |
+
+### Analytics
+
+| Method | Endpoint                            |
+| ------ | ----------------------------------- |
+| GET    | /api/analytics/prediction           |
+| GET    | /api/analytics/risk-distribution    |
+| GET    | /api/analytics/rainfall-correlation |
+| GET    | /api/analytics/metrics              |
+
+### Historical
+
+| Method | Endpoint                       |
+| ------ | ------------------------------ |
+| GET    | /api/historical/yearly         |
+| GET    | /api/historical/seasonal       |
+| GET    | /api/historical/affected-areas |
+| GET    | /api/historical/summary        |
+| GET    | /api/historical/download       |
+
+### Readiness
+
+| Method | Endpoint       |
+| ------ | -------------- |
+| GET    | /api/readiness |
+
+### Planning
+
+| Method | Endpoint                       |
+| ------ | ------------------------------ |
+| GET    | /api/planning/allocation       |
+| GET    | /api/planning/summary          |
+| POST   | /api/planning/allocation/apply |
+
+### Scenario Simulator
+
+| Method | Endpoint                |
+| ------ | ----------------------- |
+| GET    | /api/scenarios/presets  |
+| POST   | /api/scenarios/simulate |
+
+### Reports & Exports
+
+| Method | Endpoint                         |
+| ------ | -------------------------------- |
+| GET    | /api/reports/catalog             |
+| GET    | /api/reports/flood-situation     |
+| GET    | /api/reports/resource-allocation |
+| GET    | /api/reports/scenario-analysis   |
+| GET    | /api/reports/exports             |
+
+### Emergency
+
+| Method | Endpoint                         |
+| ------ | -------------------------------- |
+| GET    | /api/emergency/status            |
+| POST   | /api/emergency/deploy-pumps      |
+| POST   | /api/emergency/traffic-diversion |
+| POST   | /api/emergency/mass-sms          |
+| POST   | /api/emergency/ndrf-request      |
+| POST   | /api/emergency/evacuate          |
+| POST   | /api/emergency/medical-teams     |
+| POST   | /api/emergency/alert-all         |
+| GET    | /api/emergency/situation-report  |
+| GET    | /api/emergency/contacts          |
+| GET    | /api/emergency/actions-log       |
+
+---
+
+## Technology Stack
+
+| Layer         | Technology             |
+| ------------- | ---------------------- |
+| Backend       | Flask, NumPy, Pandas   |
+| Frontend      | React, React Router    |
+| Visualization | Recharts               |
+| GIS           | Leaflet, React-Leaflet |
+| Networking    | Axios                  |
+| Mapping       | OpenStreetMap          |
+| Styling       | Custom CSS             |

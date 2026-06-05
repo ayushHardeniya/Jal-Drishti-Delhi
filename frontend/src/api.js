@@ -51,6 +51,38 @@ export const getHistoricalDownload = () => api.get('/api/historical/download');
 export const getReadiness = (rainfall) =>
   api.get('/api/readiness', { params: { rainfall } });
 
+/* ---- Reports & Exports ---- */
+export const getReportsSummary = (rainfall) =>
+  api.get('/api/reports/summary', { params: { rainfall } });
+export const downloadFloodSituationReport = (rainfall) =>
+  api.get('/api/reports/situation-report.pdf', { params: { rainfall }, responseType: 'blob' });
+export const downloadResourceAllocationReport = (rainfall) =>
+  api.get('/api/reports/resource-allocation-report.pdf', { params: { rainfall }, responseType: 'blob' });
+export const downloadScenarioAnalysisReport = (scenarioId, rainfall) =>
+  api.get('/api/reports/scenario-analysis-report.pdf', {
+    params: { scenario_id: scenarioId, rainfall },
+    responseType: 'blob',
+  });
+export const downloadHistoricalDataCsv = () =>
+  api.get('/api/exports/historical-data.csv', { responseType: 'blob' });
+export const downloadHotspotDataCsv = (rainfall) =>
+  api.get('/api/exports/hotspot-data.csv', { params: { rainfall }, responseType: 'blob' });
+export const downloadReadinessScoresCsv = (rainfall) =>
+  api.get('/api/exports/readiness-scores.csv', { params: { rainfall }, responseType: 'blob' });
+
+/* ---- Planning / Resource Allocation ---- */
+export const getPlanningAllocation = (rainfall) =>
+  api.get('/api/planning/allocation', { params: { rainfall } });
+export const getPlanningSummary = (rainfall) =>
+  api.get('/api/planning/summary', { params: { rainfall } });
+export const applyPlanningAllocation = (payload = {}) =>
+  api.post('/api/planning/allocation/apply', payload);
+
+/* ---- Scenario Simulation ---- */
+export const getScenarioPresets = () => api.get('/api/scenarios/presets');
+export const simulateScenario = (payload = {}) =>
+  api.post('/api/scenarios/simulate', payload);
+
 /* ---- Emergency ---- */
 export const getEmergencyStatus = () => api.get('/api/emergency/status');
 export const emergencyDeployPumps = (count = 5) =>

@@ -263,3 +263,130 @@ WARD_ZONES = [
     {"zone": "Northwest Delhi", "wards": 30, "base_drainage_score": 48, "pump_infra": 45, "terrain_score": 52, "historical_prep": 50},
     {"zone": "Southwest Delhi", "wards": 28, "base_drainage_score": 55, "pump_infra": 50, "terrain_score": 48, "historical_prep": 52},
 ]
+
+
+# Planning / allocation configuration
+RESOURCE_INVENTORY = {
+    "pumps": 18,
+    "field_teams": 7,
+    "traffic_units": 4,
+    "sms_batches": 3,
+    "medical_units": 2,
+    "evacuation_vehicles": 6,
+}
+
+ALLOCATION_WEIGHTS = {
+    "flood_risk": 0.40,
+    "population_exposure": 0.25,
+    "readiness_gap": 0.20,
+    "drainage_penalty": 0.10,
+    "operational_urgency": 0.05,
+}
+
+PLANNING_RULES = {
+    "critical_risk_threshold": 0.75,
+    "high_risk_threshold": 0.50,
+    "minimum_action_score": 35.0,
+    "top_recommendation_limit": 6,
+}
+
+
+# Scenario presets for flood simulation
+SCENARIO_PRESETS = [
+    {
+        "key": "normal_monsoon",
+        "name": "Normal Monsoon",
+        "description": "Seasonal rain with manageable drainage stress and moderate operational pressure.",
+        "rainfall_mm": 35,
+        "drainage_stress": 0.10,
+        "readiness_penalty": 0.06,
+        "resource_pressure": 0.12,
+        "focus": "Monitoring and light intervention",
+    },
+    {
+        "key": "heavy_rainfall",
+        "name": "Heavy Rainfall",
+        "description": "Sustained rain event with noticeable drainage stress and higher field response demand.",
+        "rainfall_mm": 70,
+        "drainage_stress": 0.22,
+        "readiness_penalty": 0.12,
+        "resource_pressure": 0.26,
+        "focus": "Pump staging and traffic control",
+    },
+    {
+        "key": "cloudburst",
+        "name": "Cloudburst",
+        "description": "Short-duration extreme rainfall with severe operational strain across low-lying zones.",
+        "rainfall_mm": 110,
+        "drainage_stress": 0.38,
+        "readiness_penalty": 0.20,
+        "resource_pressure": 0.45,
+        "focus": "Rapid response and evacuation readiness",
+    },
+    {
+        "key": "extreme_flood_event",
+        "name": "Extreme Flood Event",
+        "description": "Citywide extreme flood condition with maximum drainage stress and emergency posture.",
+        "rainfall_mm": 150,
+        "drainage_stress": 0.55,
+        "readiness_penalty": 0.30,
+        "resource_pressure": 0.65,
+        "focus": "Emergency escalation and mass alerts",
+    },
+]
+
+
+REPORT_DOWNLOADS = [
+    {
+        "key": "situation_report",
+        "name": "Flood Situation Report",
+        "format": "PDF",
+        "description": "Current rainfall, hotspot summary, readiness summary, and emergency status.",
+        "endpoint": "/api/reports/situation-report.pdf",
+        "filename": "Flood_Situation_Report.pdf",
+    },
+    {
+        "key": "allocation_report",
+        "name": "Resource Allocation Report",
+        "format": "PDF",
+        "description": "Resource inventory, priority zones, ranked recommendations, and expected impact.",
+        "endpoint": "/api/reports/resource-allocation-report.pdf",
+        "filename": "Resource_Allocation_Report.pdf",
+    },
+    {
+        "key": "scenario_report",
+        "name": "Scenario Analysis Report",
+        "format": "PDF",
+        "description": "Selected scenario, baseline metrics, simulated metrics, and recommended actions.",
+        "endpoint": "/api/reports/scenario-analysis-report.pdf",
+        "filename": "Scenario_Analysis_Report.pdf",
+    },
+]
+
+
+DATA_EXPORTS = [
+    {
+        "key": "historical_data",
+        "name": "Historical Data Export",
+        "format": "CSV",
+        "description": "Year and month-wise incident, rainfall, and impact dataset for archival analysis.",
+        "endpoint": "/api/exports/historical-data.csv",
+        "filename": "Historical_Data_Export.csv",
+    },
+    {
+        "key": "hotspot_data",
+        "name": "Hotspot Data Export",
+        "format": "CSV",
+        "description": "Current hotspot risk, status, population exposure, and operational severity.",
+        "endpoint": "/api/exports/hotspot-data.csv",
+        "filename": "Hotspot_Data_Export.csv",
+    },
+    {
+        "key": "readiness_scores",
+        "name": "Readiness Scores Export",
+        "format": "CSV",
+        "description": "Current ward readiness scores and grade breakdown across all zones.",
+        "endpoint": "/api/exports/readiness-scores.csv",
+        "filename": "Readiness_Scores_Export.csv",
+    },
+]

@@ -4,7 +4,9 @@ Flood risk calculation, LSTM-style predictions, readiness scoring.
 """
 
 import random
+from copy import deepcopy
 from datetime import datetime, timedelta
+from math import ceil
 
 
 def calculate_flood_risk(base_risk, rainfall, elevation=210, drainage_density=0.6):
@@ -151,3 +153,536 @@ def calculate_zone_risk_distribution(rainfall):
             "severity": severity,
         })
     return result
+
+
+# ---------------------------------------------------------------------------
+# Planning / Resource Allocation
+# ---------------------------------------------------------------------------
+
+def _zone_key_from_ward(ward_name):
+    """Convert a ward code such as 'Southwest-12' into a zone name."""
+    prefix = ward_name.split("-")[0].strip()
+    return f"{prefix} Delhi"
+
+
+def _readiness_lookup(ward_zones, rainfall):
+    """Build a lookup of readiness scores keyed by zone name."""
+    lookup = {}
+    for zone in ward_zones:
+        readiness = calculate_readiness_score(zone, rainfall)
+        lookup[zone["zone"]] = readiness
+    return lookup
+
+
+def _risk_urgency_bonus(risk_pct):
+    if risk_pct >= 95:
+        return 20.0
+    if risk_pct >= 85:
+        return 12.0
+    if risk_pct >= 75:
+        return 6.0
+    return 0.0
+
+
+def _resource_type_for_hotspot(hotspot, risk_pct, readiness_grade):
+    name = hotspot["name"]
+    if name in {"Minto Road", "ITO"} and risk_pct >= 80:
+        return "traffic_units"
+    if risk_pct >= 95:
+        return "evacuation_vehicles"
+    if risk_pct >= 88:
+        return "pumps"
+    if risk_pct >= 78 and readiness_grade in {"D", "F"}:
+        return "field_teams"
+    if risk_pct >= 70 and hotspot["population"] >= 50000:
+        return "sms_batches"
+    if readiness_grade in {"D", "F"}:
+        return "field_teams"
+    if risk_pct >= 75:
+        return "medical_units"
+    return "pumps"
+
+
+def _requested_quantity(resource_type, risk_pct, population):
+    if resource_type == "traffic_units":
+        return 2 if risk_pct >= 85 else 1
+    if resource_type == "evacuation_vehicles":
+        return 2 if population >= 80000 else 1
+    if resource_type == "sms_batches":
+        return 1
+    if resource_type == "medical_units":
+        return 1 if risk_pct < 90 else 2
+    if resource_type == "field_teams":
+        return 2 if risk_pct >= 85 else 1
+    return 4 if risk_pct >= 95 else 2 if risk_pct >= 85 else 1
+
+
+def _zone_priority_record(zone_name, zone_risk_pct, readiness, population_at_risk, drainage_status):
+    readiness_gap = max(0.0, 100 - readiness["total"])
+    priority_score = round(
+        min(
+            100.0,
+            (zone_risk_pct * 0.42)
+            + (readiness_gap * 0.28)
+            + (min(population_at_risk / 1000, 100) * 0.18)
+            + ((100 - readiness["terrain_mitigation"] * 4) * 0.07)
+            + (_risk_urgency_bonus(zone_risk_pct) * 0.05),
+        ),
+        1,
+    )
+    return {
+        "zone_id": f"zone-{zone_name.lower().replace(' ', '-')}",
+        "zone_name": zone_name,
+        "zone_type": "ward",
+        "risk_pct": round(zone_risk_pct, 1),
+        "readiness_score": readiness["total"],
+        "readiness_grade": readiness["grade"],
+        "population_at_risk": int(population_at_risk),
+        "drainage_status": drainage_status,
+        "priority_score": priority_score,
+        "primary_driver": (
+            "High flood exposure with weak readiness"
+            if readiness_gap >= 40
+            else "Elevated flood pressure and moderate readiness gap"
+        ),
+    }
+
+
+def build_resource_allocation_plan(rainfall, hotspots, drainage_systems, ward_zones, inventory, weights, plan_limit=6):
+    """Generate a deterministic resource allocation plan."""
+    now = datetime.now().isoformat()
+    readiness_lookup = _readiness_lookup(ward_zones, rainfall)
+    max_population = max((h["population"] for h in hotspots), default=1)
+    total_drain_status = {
+        "Clear": sum(1 for d in drainage_systems if d["status"] == "Clear"),
+        "Silted": sum(1 for d in drainage_systems if d["status"] == "Silted"),
+        "Blocked": sum(1 for d in drainage_systems if d["status"] == "Blocked"),
+    }
+
+    scored_hotspots = []
+    for hotspot in hotspots:
+        risk = calculate_flood_risk(
+            hotspot["base_risk"], rainfall, hotspot["elevation"], hotspot["drainage_density"]
+        )
+        status, severity = get_risk_status(risk)
+        zone_name = _zone_key_from_ward(hotspot["ward"])
+        readiness = readiness_lookup.get(zone_name, {
+            "total": 50.0,
+            "grade": "C",
+            "drainage_readiness": 12.5,
+            "pump_infrastructure": 12.5,
+            "terrain_mitigation": 12.5,
+            "historical_preparedness": 12.5,
+        })
+        population_score = (hotspot["population"] / max_population) * 100
+        readiness_gap = max(0.0, 100 - readiness["total"])
+        drainage_penalty = (1 - hotspot["drainage_density"]) * 100
+        urgency_bonus = _risk_urgency_bonus(risk * 100)
+        corridor_bonus = 10.0 if hotspot["name"] in {"Minto Road", "ITO"} else 0.0
+
+        priority_score = round(
+            min(
+                100.0,
+                (risk * 100 * weights["flood_risk"])
+                + (population_score * weights["population_exposure"])
+                + (readiness_gap * weights["readiness_gap"])
+                + (drainage_penalty * weights["drainage_penalty"])
+                + ((urgency_bonus + corridor_bonus) * weights["operational_urgency"]),
+            ),
+            1,
+        )
+
+        resource_type = _resource_type_for_hotspot(hotspot, risk * 100, readiness["grade"])
+        requested_quantity = _requested_quantity(resource_type, risk * 100, hotspot["population"])
+
+        supporting_factors = [
+            f"Risk level is {risk * 100:.1f}% ({status})",
+            f"Readiness grade for {zone_name} is {readiness['grade']}",
+            f"Drainage density is {hotspot['drainage_density']:.2f}",
+        ]
+        if hotspot["name"] in {"Minto Road", "ITO"}:
+            supporting_factors.append("High-visibility corridor requires traffic control support")
+        if severity == "critical":
+            supporting_factors.append("Critical severity triggers immediate intervention")
+
+        reason = (
+            f"{hotspot['name']} combines {status.lower()} flood risk with {readiness['grade']} readiness in {zone_name}. "
+            f"Resource type {resource_type} is prioritized because it best addresses the dominant constraint."
+        )
+
+        estimated_effect = {
+            "risk_reduction_pct": round(min(18.0, risk * 100 * 0.15 + readiness_gap * 0.04), 1),
+            "population_protected": int(hotspot["population"]),
+            "response_time_gain_min": round(8 + (requested_quantity * 2.5), 1),
+            "drainage_capacity_gain_pct": round(min(15.0, hotspot["drainage_density"] * 8), 1),
+            "readiness_gain_pct": round(min(6.0, readiness_gap * 0.08), 1),
+        }
+
+        scored_hotspots.append({
+            "hotspot": hotspot,
+            "risk": risk,
+            "status": status,
+            "severity": severity,
+            "zone_name": zone_name,
+            "readiness": readiness,
+            "priority_score": priority_score,
+            "resource_type": resource_type,
+            "requested_quantity": requested_quantity,
+            "supporting_factors": supporting_factors,
+            "reason": reason,
+            "estimated_effect": estimated_effect,
+            "population_score": population_score,
+            "readiness_gap": readiness_gap,
+            "drainage_penalty": drainage_penalty,
+        })
+
+    scored_hotspots.sort(key=lambda item: item["priority_score"], reverse=True)
+
+    allocated_totals = {key: 0 for key in inventory}
+    recommendations = []
+    for item in scored_hotspots:
+        if len(recommendations) >= plan_limit:
+            break
+        resource_type = item["resource_type"]
+        available_remaining = inventory[resource_type] - allocated_totals[resource_type]
+        if available_remaining <= 0:
+            continue
+        quantity = min(item["requested_quantity"], available_remaining)
+        if quantity <= 0:
+            continue
+
+        allocated_totals[resource_type] += quantity
+        recommendations.append({
+            "rank": len(recommendations) + 1,
+            "target_type": "hotspot",
+            "target_id": item["hotspot"]["id"],
+            "target_name": item["hotspot"]["name"],
+            "zone_name": item["zone_name"],
+            "resource_type": resource_type,
+            "quantity": quantity,
+            "priority_score": item["priority_score"],
+            "confidence": round(min(98.0, 82.0 + (item["priority_score"] * 0.15)), 1),
+            "reason": item["reason"],
+            "expected_effect": item["estimated_effect"],
+            "supporting_factors": item["supporting_factors"],
+            "status": "recommended",
+        })
+
+    priority_zone_map = {}
+    for item in scored_hotspots:
+        zone_name = item["zone_name"]
+        readiness = item["readiness"]
+        current = priority_zone_map.get(zone_name)
+        if current is None:
+            current = {
+                "risk_pct": item["risk"] * 100,
+                "population_at_risk": item["hotspot"]["population"],
+                "drainage_status": "Blocked" if item["hotspot"]["drainage_density"] < 0.5 else "Silted" if item["hotspot"]["drainage_density"] < 0.7 else "Clear",
+                "readiness": readiness,
+            }
+        else:
+            current["risk_pct"] = max(current["risk_pct"], item["risk"] * 100)
+            current["population_at_risk"] += item["hotspot"]["population"]
+            if item["hotspot"]["drainage_density"] < 0.5:
+                current["drainage_status"] = "Blocked"
+            elif item["hotspot"]["drainage_density"] < 0.7 and current["drainage_status"] == "Clear":
+                current["drainage_status"] = "Silted"
+        priority_zone_map[zone_name] = current
+
+    priority_zones = []
+    for zone_name, data in priority_zone_map.items():
+        priority_zones.append(_zone_priority_record(
+            zone_name,
+            data["risk_pct"],
+            data["readiness"],
+            data["population_at_risk"],
+            data["drainage_status"],
+        ))
+    priority_zones.sort(key=lambda item: item["priority_score"], reverse=True)
+    priority_zones = priority_zones[:6]
+
+    critical_hotspots = sum(1 for item in scored_hotspots if item["risk"] >= 0.75)
+    high_risk_population = sum(item["hotspot"]["population"] for item in scored_hotspots if item["risk"] >= 0.60)
+    zones_evaluated = len(ward_zones)
+    drains_evaluated = len(drainage_systems)
+    resources_committed = sum(rec["quantity"] for rec in recommendations)
+    priority_actions = len(recommendations)
+
+    overall_urgency = (
+        "critical" if critical_hotspots >= 4 else
+        "high" if critical_hotspots >= 2 else
+        "moderate" if critical_hotspots >= 1 else
+        "low"
+    )
+
+    reasoning = {
+        "method": "Weighted operational prioritization using current flood risk, population exposure, readiness gap, drainage penalty, and urgency.",
+        "factor_weights": weights,
+        "explanations": [
+            f"{recommendations[0]['target_name']} ranks first because it has the strongest combined flood exposure and readiness gap." if recommendations else "No allocations were required.",
+            f"{zones_evaluated} ward zones and {drains_evaluated} drainage systems were evaluated for the current plan.",
+            f"{total_drain_status['Blocked']} blocked and {total_drain_status['Silted']} silted drains increase the operational urgency.",
+        ],
+    }
+
+    expected_impact = {
+        "risk_reduction_pct": round(sum(rec["expected_effect"]["risk_reduction_pct"] for rec in recommendations) / len(recommendations), 1) if recommendations else 0,
+        "population_covered": int(sum(rec["expected_effect"]["population_protected"] for rec in recommendations)),
+        "critical_hotspots_stabilized": critical_hotspots,
+        "drains_intervened": min(total_drain_status["Blocked"] + total_drain_status["Silted"], 3),
+        "readiness_improvement_pct": round(sum(rec["expected_effect"]["readiness_gain_pct"] for rec in recommendations) / len(recommendations), 1) if recommendations else 0,
+        "estimated_time_to_stabilization_min": round(28 + (priority_actions * 3.5), 1),
+    }
+
+    return {
+        "plan_id": f"plan_{datetime.now().strftime('%Y%m%d_%H%M%S')}_delhi",
+        "generated_at": now,
+        "rainfall_mm": rainfall,
+        "context": {
+            "mode": "current",
+            "notes": "Allocation plan generated from current rainfall state and live hotspot/readiness data.",
+        },
+        "summary": {
+            "total_hotspots_evaluated": len(hotspots),
+            "critical_hotspots": critical_hotspots,
+            "high_risk_population": int(high_risk_population),
+            "zones_evaluated": zones_evaluated,
+            "drains_evaluated": drains_evaluated,
+            "resources_committed": resources_committed,
+            "priority_actions": priority_actions,
+            "overall_action_urgency": overall_urgency,
+        },
+        "resource_inventory": {
+            "available": inventory,
+            "reserved": allocated_totals,
+            "remaining": {key: inventory[key] - allocated_totals[key] for key in inventory},
+        },
+        "priority_zones": priority_zones,
+        "ranked_recommendations": recommendations,
+        "reasoning": reasoning,
+        "expected_impact": expected_impact,
+    }
+
+
+def apply_resource_allocation_plan(plan, state):
+    """Apply allocation actions to the in-memory application state."""
+    applied = []
+    for recommendation in plan.get("ranked_recommendations", []):
+        resource_type = recommendation["resource_type"]
+        quantity = recommendation["quantity"]
+        entry = {
+            "timestamp": datetime.now().isoformat(),
+            "type": f"ALLOCATION_{resource_type.upper()}",
+            "description": (
+                f"Allocated {quantity} {resource_type} to "
+                f"{recommendation['target_name']}"
+            ),
+        }
+        state["actions_log"].insert(0, entry)
+        if len(state["actions_log"]) > 100:
+            state["actions_log"] = state["actions_log"][:100]
+
+        inventory = state.get("resource_inventory", {})
+        if resource_type in inventory:
+            inventory[resource_type] = max(0, inventory[resource_type] - quantity)
+
+        if resource_type == "pumps":
+            state["pumps_deployed"] += quantity
+        elif resource_type == "sms_batches":
+            state["alerts_sent"] += quantity
+
+        applied.append({
+            "target_name": recommendation["target_name"],
+            "resource_type": resource_type,
+            "quantity": quantity,
+            "log": entry,
+        })
+
+    return {
+        "message": "Resource allocation plan applied successfully.",
+        "applied": applied,
+        "state": {
+            "rainfall": state["rainfall"],
+            "pumps_deployed": state["pumps_deployed"],
+            "alerts_sent": state["alerts_sent"],
+        },
+        "actions_log": state["actions_log"][:20],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Scenario Simulation
+# ---------------------------------------------------------------------------
+
+def _scenario_lookup(scenarios):
+    lookup = {}
+    for scenario in scenarios:
+        scenario_key = scenario.get("key") or scenario.get("id")
+        if scenario_key:
+            lookup[scenario_key] = scenario
+    return lookup
+
+
+def _scenario_adjusted_hotspots(hotspots, rainfall, scenario):
+    adjusted = []
+    for hotspot in hotspots:
+        copy = deepcopy(hotspot)
+        copy["base_risk"] = min(0.99, round(hotspot["base_risk"] * (1 + scenario["resource_pressure"] * 0.18), 4))
+        copy["drainage_density"] = max(0.15, round(hotspot["drainage_density"] - scenario["drainage_stress"] * 0.35, 4))
+        adjusted.append(copy)
+    return adjusted
+
+
+def _scenario_adjusted_wards(ward_zones, scenario):
+    adjusted = []
+    for zone in ward_zones:
+        copy = deepcopy(zone)
+        copy["base_drainage_score"] = max(20, round(zone["base_drainage_score"] * (1 - scenario["drainage_stress"] * 0.55), 1))
+        copy["pump_infra"] = max(20, round(zone["pump_infra"] * (1 - scenario["resource_pressure"] * 0.28), 1))
+        copy["terrain_score"] = max(20, round(zone["terrain_score"] * (1 - scenario["drainage_stress"] * 0.18), 1))
+        copy["historical_prep"] = max(20, round(zone["historical_prep"] * (1 - scenario["readiness_penalty"] * 0.45), 1))
+        adjusted.append(copy)
+    return adjusted
+
+
+def _scenario_effective_values(rainfall, scenario):
+    return {
+        "rainfall_mm": scenario["rainfall_mm"],
+        "drainage_stress": scenario["drainage_stress"],
+        "readiness_penalty": scenario["readiness_penalty"],
+        "resource_pressure": scenario["resource_pressure"],
+        "rainfall_delta": round(scenario["rainfall_mm"] - rainfall, 1),
+    }
+
+
+def _plan_metrics(plan):
+    recommendations = plan.get("ranked_recommendations", [])
+    return {
+        "rainfall_mm": plan["rainfall_mm"],
+        "critical_hotspots": plan["summary"]["critical_hotspots"],
+        "population_at_risk": plan["summary"]["high_risk_population"],
+        "readiness_score": round(max(0, 100 - plan["expected_impact"]["readiness_improvement_pct"] * 5), 1),
+        "pumps_required": sum(r["quantity"] for r in recommendations if r["resource_type"] == "pumps"),
+        "field_teams_required": sum(r["quantity"] for r in recommendations if r["resource_type"] == "field_teams"),
+        "traffic_units_required": sum(r["quantity"] for r in recommendations if r["resource_type"] == "traffic_units"),
+        "overall_urgency": plan["summary"]["overall_action_urgency"],
+    }
+
+
+def simulate_flood_scenario(scenario_id, rainfall, hotspots, drainage_systems, ward_zones, inventory, weights, scenarios, plan_limit=6):
+    """Generate a deterministic what-if flood scenario simulation."""
+    lookup = _scenario_lookup(scenarios)
+    scenario = lookup.get(scenario_id)
+    if not scenario:
+        return None
+
+    baseline_plan = build_resource_allocation_plan(
+        rainfall=rainfall,
+        hotspots=hotspots,
+        drainage_systems=drainage_systems,
+        ward_zones=ward_zones,
+        inventory=deepcopy(inventory),
+        weights=weights,
+        plan_limit=plan_limit,
+    )
+
+    scenario_hotspots = _scenario_adjusted_hotspots(hotspots, rainfall, scenario)
+    scenario_wards = _scenario_adjusted_wards(ward_zones, scenario)
+    scenario_plan = build_resource_allocation_plan(
+        rainfall=scenario["rainfall_mm"],
+        hotspots=scenario_hotspots,
+        drainage_systems=drainage_systems,
+        ward_zones=scenario_wards,
+        inventory=deepcopy(inventory),
+        weights=weights,
+        plan_limit=plan_limit,
+    )
+
+    baseline_metrics = _plan_metrics(baseline_plan)
+    simulated_metrics = _plan_metrics(scenario_plan)
+
+    simulated_metrics["readiness_score"] = round(
+        max(0, simulated_metrics["readiness_score"] - scenario["readiness_penalty"] * 18),
+        1,
+    )
+    simulated_metrics["pumps_required"] = max(
+        simulated_metrics["pumps_required"],
+        round(baseline_metrics["pumps_required"] * (1 + scenario["resource_pressure"] * 1.6)),
+        ceil(scenario_plan["summary"]["critical_hotspots"] * max(1.0, scenario["resource_pressure"])),
+    )
+    simulated_metrics["field_teams_required"] = max(
+        simulated_metrics["field_teams_required"],
+        round(baseline_metrics["field_teams_required"] * (1 + scenario["resource_pressure"] * 1.4)),
+        ceil(len(scenario_plan["priority_zones"]) * max(1.0, 1 + scenario["readiness_penalty"] * 10)),
+    )
+
+    baseline_hotspots = []
+    for hotspot in hotspots:
+        risk = calculate_flood_risk(hotspot["base_risk"], rainfall, hotspot["elevation"], hotspot["drainage_density"])
+        if risk >= 0.60:
+            baseline_hotspots.append({
+                "id": hotspot["id"],
+                "name": hotspot["name"],
+                "risk_pct": round(risk * 100, 1),
+                "status": get_risk_status(risk)[0],
+                "severity": get_risk_status(risk)[1],
+                "population": hotspot["population"],
+            })
+
+    scenario_hotspot_rows = []
+    for hotspot in scenario_hotspots:
+        risk = calculate_flood_risk(hotspot["base_risk"], scenario["rainfall_mm"], hotspot["elevation"], hotspot["drainage_density"])
+        if risk >= 0.60:
+            scenario_hotspot_rows.append({
+                "id": hotspot["id"],
+                "name": hotspot["name"],
+                "risk_pct": round(risk * 100, 1),
+                "status": get_risk_status(risk)[0],
+                "severity": get_risk_status(risk)[1],
+                "population": hotspot["population"],
+            })
+
+    impacted_zones = scenario_plan.get("priority_zones", [])[:5]
+    recommended_actions = []
+    for recommendation in scenario_plan.get("ranked_recommendations", [])[:6]:
+        recommended_actions.append({
+            "rank": recommendation["rank"],
+            "target_name": recommendation["target_name"],
+            "zone_name": recommendation["zone_name"],
+            "resource_type": recommendation["resource_type"],
+            "quantity": recommendation["quantity"],
+            "reason": recommendation["reason"],
+            "expected_effect": recommendation["expected_effect"],
+        })
+
+    delta = {
+        "rainfall_mm": round(simulated_metrics["rainfall_mm"] - baseline_metrics["rainfall_mm"], 1),
+        "critical_hotspots": simulated_metrics["critical_hotspots"] - baseline_metrics["critical_hotspots"],
+        "population_at_risk": simulated_metrics["population_at_risk"] - baseline_metrics["population_at_risk"],
+        "readiness_score": round(simulated_metrics["readiness_score"] - baseline_metrics["readiness_score"], 1),
+        "pumps_required": simulated_metrics["pumps_required"] - baseline_metrics["pumps_required"],
+        "field_teams_required": simulated_metrics["field_teams_required"] - baseline_metrics["field_teams_required"],
+    }
+
+    return {
+        "scenario": {
+            "key": scenario["key"],
+            "name": scenario["name"],
+            "description": scenario["description"],
+            **_scenario_effective_values(rainfall, scenario),
+        },
+        "generated_at": datetime.now().isoformat(),
+        "baseline": baseline_metrics,
+        "simulated": simulated_metrics,
+        "delta": delta,
+        "affected_hotspots": scenario_hotspot_rows[:6],
+        "critical_zones": impacted_zones,
+        "recommended_actions": recommended_actions,
+        "expected_impact": {
+            "population_at_risk": simulated_metrics["population_at_risk"],
+            "critical_hotspots": simulated_metrics["critical_hotspots"],
+            "pumps_required": simulated_metrics["pumps_required"],
+            "field_teams_required": simulated_metrics["field_teams_required"],
+            "readiness_score": simulated_metrics["readiness_score"],
+        },
+    }
