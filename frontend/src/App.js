@@ -17,15 +17,19 @@ import './App.css';
 
 const NAV_ITEMS = [
   { path: '/', label: 'Dashboard' },
+  //Situation Awareness
   { path: '/hotspots', label: 'Flood Hotspots' },
   { path: '/drainage', label: 'Drainage Network' },
-  { path: '/planning', label: 'Planning' },
-  { path: '/scenarios', label: 'Scenario Simulator' },
-  { path: '/reports', label: 'Reports & Exports' },
   { path: '/analytics', label: 'Analytics' },
   { path: '/historical', label: 'Historical Data' },
   { path: '/readiness', label: 'Readiness Score' },
+  // Decision Support
+  { path: '/planning', label: 'Planning' },
+  { path: '/scenarios', label: 'Scenario Simulator' },
+  // Operations
   { path: '/emergency', label: 'Emergency Actions' },
+  // Reporting
+  { path: '/reports', label: 'Reports & Exports' },
 ];
 
 export default function App() {
