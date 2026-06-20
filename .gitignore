@@ -42,3 +42,6 @@ dist/
 # Misc
 *.log
 .env
+ 
+# Excalidraw Live
+architecture.excalidraw

@@ -49,6 +49,14 @@ While the current implementation focuses on Delhi NCR as a pilot region, the arc
 
 ---
 
+## System Architecture
+
+![Jal-Drishti Architecture](frontend/public/assets/Architecture-Diagram.png)
+
+The platform follows a layered architecture comprising Data Sources, Application Services, Intelligence Engines, and Decision Support modules. For detailed architecture, component descriptions, data flow, and API references, see [ARCHITECTURE.md](ARCHITECTURE.md).
+
+---
+
 ## Features
 
 ### Flood Monitoring
@@ -145,36 +153,6 @@ While the current implementation focuses on Delhi NCR as a pilot region, the arc
 * Scenario Simulator
 * Emergency Actions
 * Reports & Exports
-
----
-
-## Project Structure
-
-```text
-Jal-Drishti-Delhi/
-│
-├── backend/
-│   ├── app.py
-│   ├── data.py
-│   ├── services.py
-│   └── requirements.txt
-│
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── api.js
-│   │   ├── App.js
-│   │   └── App.css
-│   └── package.json
-│
-├── ARCHITECTURE.md
-├── README.md
-└── start_fullstack.bat
-```
-
-For detailed architecture, data flow, API structure, and implementation details, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 

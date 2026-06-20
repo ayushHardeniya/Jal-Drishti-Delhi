@@ -24,6 +24,7 @@ Jal-Drishti-Delhi/
 |-- frontend/                          React Single Page Application
 |   |
 |   |-- public/
+|   |   |-- assets/                    Media & Pictures
 |   |   |-- index.html                 Application entry HTML
 |   |
 |   |-- src/
@@ -335,15 +336,3 @@ http://localhost:3000
 | GET    | /api/emergency/actions-log       |
 
 ---
-
-## Technology Stack
-
-| Layer         | Technology             |
-| ------------- | ---------------------- |
-| Backend       | Flask, NumPy, Pandas   |
-| Frontend      | React, React Router    |
-| Visualization | Recharts               |
-| GIS           | Leaflet, React-Leaflet |
-| Networking    | Axios                  |
-| Mapping       | OpenStreetMap          |
-| Styling       | Custom CSS             |
