@@ -7,14 +7,13 @@
 </h1>
 
 <p align="center">
-  <strong>Urban Flooding & Hydrology Command Center</strong><br>
-  Municipal Corporation of Delhi
+  <strong>Urban Flood Intelligence & Decision Support Platform</strong><br>
+  <em>Delhi NCR Pilot Implementation</em>
 </p>
 
 <p align="center">
   <a href="https://jal-drishti-delhi-mu.vercel.app/">Live Demo</a> •
-  <a href="ARCHITECTURE.md">Architecture Documentation</a> •
-  <a href="https://youtu.be/bmCsSPgtJOo">Project Walkthrough</a>
+  <a href="ARCHITECTURE.md">Architecture Documentation</a>
 </p>
 
 ---
@@ -25,28 +24,28 @@
 
 ---
 
-## Background
+## Project History
 
-Originally developed as a hackathon submission for the Urban Flooding & Hydrology Engine challenge during India Innovates 2026.
+Jal-Drishti Delhi originated from an Urban Flooding & Hydrology challenge focused on improving flood preparedness and decision-making for Indian cities.
+
+The project has since evolved into a broader Urban Flood Intelligence and Decision Support Platform that combines flood monitoring, GIS visualization, readiness assessment, resource planning, scenario simulation, emergency response workflows, and operational reporting into a unified municipal command center.
+
+**Original Challenge Reference:**
+*Urban Flooding & Hydrology Engine - Municipal Corporation of Delhi*
 
 [View Original Problem Statement and Source](https://unstop.com/conferences/india-innovates-2026-municipal-corporation-of-delhi-1625920)
 
-As part of the GitHub **Finish-Up-A-Thon**, the project was revisited and expanded with additional planning, simulation, and reporting capabilities. 
-Screenshots documenting the project before and after these updates are available in the [`screenshots/`](screenshots) directory.
-
-The implementation work completed during the challenge can be viewed in the [Finish-Up-A-Thon pull request](https://github.com/ayushHardeniya/Jal-Drishti-Delhi/pull/1).
-
 ---
 
-## About the Project
+## About
 
 ![Dashboard - Jal-Drishti Delhi](screenshots/dashboard-final.png)
 
-Jal-Drishti Delhi is a full-stack web application built to explore how municipal authorities can monitor, analyze, and respond to urban flooding across Delhi NCR.
+Jal-Drishti Delhi is an **Urban Flood Intelligence and Decision Support Platform** designed to help municipal authorities monitor flood risks, assess preparedness, prioritize interventions, and coordinate emergency response operations.
 
-The platform combines flood-risk monitoring, GIS visualization, drainage analysis, readiness assessment, emergency response workflows, resource planning, scenario simulation, and reporting into a single operational dashboard.
+The platform integrates flood hotspot monitoring, GIS-based visualization, drainage analysis, readiness scoring, resource allocation planning, scenario simulation, and reporting into a single operational dashboard.
 
-The project was originally developed during India Innovates 2026 and later expanded with additional planning and decision-support capabilities.
+While the current implementation focuses on Delhi NCR as a pilot region, the architecture is designed to support future deployment across multiple cities and urban flood management environments.
 
 ---
 
@@ -202,6 +201,20 @@ npm start
 ```text
 start_fullstack.bat
 ```
+
+---
+
+## Future Scope
+
+The current platform serves as a pilot implementation for Delhi NCR. Future enhancements may include:
+
+* **Advanced flood-risk prediction models**
+* Multi-city deployment support
+* **Automated alert and notification systems**
+* Integration with real-time weather and sensor feeds
+* Geospatial analytics using PostGIS
+* Resource optimization and emergency response automation
+* Citizen-facing awareness and reporting modules
 
 ---
 
