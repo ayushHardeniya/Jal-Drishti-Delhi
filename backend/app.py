@@ -1,7 +1,7 @@
 """
 Jal-Drishti Delhi - Flask Backend API
-Urban Flooding & Hydrology Command Center
-India Innovates 2026
+Urban Flood Intelligence & Decision Support Platform
+Delhi NCR Pilot Implementation
 """
 
 import csv

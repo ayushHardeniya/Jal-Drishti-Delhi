@@ -74,7 +74,7 @@ export default function App() {
           <div>
             <h1>Jal-Drishti Delhi</h1>
             <span className="header-subtitle">
-              Urban Flooding &amp; Hydrology Command Center &mdash; Municipal Corporation of Delhi
+              Urban Flood Intelligence &amp; Decision Support Platform &mdash; Delhi NCR Pilot Implementation
             </span>
           </div>
         </div>

@@ -62,7 +62,7 @@ export default function Dashboard({ rainfall }) {
     <div>
       <h2 className="page-title">Jal-Drishti Delhi - Command Dashboard</h2>
       <p className="page-subtitle">
-        Urban Flooding and Hydrology Command Center, Municipal Corporation of Delhi
+        Urban Flood Intelligence & Decision Support Platform
       </p>
 
       {/* Metrics */}
