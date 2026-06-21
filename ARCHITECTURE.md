@@ -8,6 +8,14 @@ The system combines flood-risk monitoring, drainage analysis, predictive forecas
 
 ---
 
+## System Architecture Diagram
+
+![Jal-Drishti Delhi Architecture](frontend/public/assets/Architecture-Diagram.png)
+
+The architecture follows a layered design comprising Data Sources, Application Services, Intelligence Engines, and Decision Support modules. The diagram below illustrates the interaction between frontend interfaces, backend services, analytical engines, and operational outputs.
+
+---
+
 ## Project Structure
 
 ```text
